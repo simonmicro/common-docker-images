@@ -1,3 +1,3 @@
 FROM alpine:latest
 
-RUN apk --no-cache add openssh rsync zip
+RUN apk --no-cache add openssh rsync zip curl
