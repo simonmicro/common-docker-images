@@ -14,8 +14,7 @@
 # - CI_REGISTRY_IMAGE
 # - DHUB_REGISTRY_IMAGE
 
-
-build:
+gitlab-ci:
     stage: build
     image:
         name: gcr.io/kaniko-project/executor:debug
@@ -25,3 +24,14 @@ build:
         - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
         - /kaniko/executor --context $CI_PROJECT_DIR/alpine-deploy --dockerfile $CI_PROJECT_DIR/alpine-deploy/Dockerfile --destination $CI_REGISTRY_IMAGE/alpine-deploy:latest
         - /kaniko/executor --context $CI_PROJECT_DIR/alpine-php-doxygen --dockerfile $CI_PROJECT_DIR/alpine-php-doxygen/Dockerfile --destination $CI_REGISTRY_IMAGE/alpine-php-doxygen:latest
+        
+docker-hub:
+    stage: build
+    image:
+        name: gcr.io/kaniko-project/executor:debug
+        entrypoint: [""]
+    script:
+        - mkdir -p /kaniko/.docker
+        - echo "{\"auths\":{\"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        - /kaniko/executor --context $CI_PROJECT_DIR/alpine-deploy --dockerfile $CI_PROJECT_DIR/alpine-deploy/Dockerfile --destination $DHUB_REGISTRY_IMAGE/alpine-deploy:latest
+        - /kaniko/executor --context $CI_PROJECT_DIR/alpine-php-doxygen --dockerfile $CI_PROJECT_DIR/alpine-php-doxygen/Dockerfile --destination $DHUB_REGISTRY_IMAGE/alpine-php-doxygen:latest        
