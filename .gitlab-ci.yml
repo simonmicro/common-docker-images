@@ -26,6 +26,7 @@ gitlab-ci:
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/alpine-php-doxygen --destination $CI_REGISTRY_IMAGE/alpine-php-doxygen:latest
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $CI_REGISTRY_IMAGE/apache-php-mysql:8.1 --build-arg FROM_PHP_VERSION=8.1
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $CI_REGISTRY_IMAGE/apache-php-mysql:7.4 --build-arg FROM_PHP_VERSION=7.4
+        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/debian-inotifywait --destination $CI_REGISTRY_IMAGE/debian-inotifywait:latest
         
 docker-hub:
     stage: build
@@ -39,3 +40,4 @@ docker-hub:
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/alpine-php-doxygen --destination $DHUB_REGISTRY_IMAGE/alpine-php-doxygen:latest
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $DHUB_REGISTRY_IMAGE/apache-php-mysql:8.1 --build-arg FROM_PHP_VERSION=8.1
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $DHUB_REGISTRY_IMAGE/apache-php-mysql:7.4 --build-arg FROM_PHP_VERSION=7.4
+        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/debian-inotifywait --destination $DHUB_REGISTRY_IMAGE/debian-inotifywait:latest
