@@ -1,6 +1,6 @@
 # Notes
 Use `docker run` with respective volume mounts to seed this install.
-_Keep in mind, that you'll need to start AN OTHER container with mariadb and redis, as this image is only intened to run the panel!_
+_Keep in mind, that you'll need to start ANOTHER container with `mariadb` and `redis`, as this image is only intended to run the panel!_
 
 ## HowTo seed
 To make sure this image works and is configured correctly, I've tested it with this:
@@ -10,7 +10,7 @@ Build this image locally:
 docker build -t local_debian-pterodactyl .
 ```
 
-### Prepasing the panel
+### Preparing the panel
 Start your interactive Pterodactyl-setup:
 ```bash
 docker run -it --rm -v $(pwd)/pterodactyl/www/:/var/www/pterodactyl local_debian-pterodactyl bash
@@ -89,6 +89,14 @@ docker run -it --rm -v $(pwd)/pterodactyl/www/:/var/www/pterodactyl local_debian
 ```
 
 # Kubernetes
-run panel webserver
-run panel crontab * * * * * php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1
-run panel queue worker /usr/bin/php /var/www/pterodactyl/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3
+Well, I won't help you on that one :)
+
+Overall you have to run this as follows:
+* One pod with all services
+  * One container with the panel (no command overwrite!)
+  * One container with the job-scheduler of the panel (use the `container.X.args` field with the command from above)
+  * One container with the worker of the panel (use the `container.X.args` field with the command from above)
+  * One container with the mariadb instance
+  * One container with the redis instance
+* Make sure to properly mount all needed volumes to prevent data loss!
+* For HTTPS you'll need to use a reverse proxy (e.g. nginx) and use a service pointing to the pod with the panel
