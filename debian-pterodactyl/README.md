@@ -95,8 +95,8 @@ Overall you have to run this as follows:
 * Overall Kubernetes idea
   * One pod with all panel services (disable process isolation `shareProcessNamespace`)
     * One container with the panel (no command overwrite!)
-    * One container with the job-scheduler of the panel (use the `container.X.args` field with the command from above)
-    * One container with the worker of the panel (use the `container.X.args` field with the command from above)
+    * One container with the job-scheduler of the panel (use the `container.X.command` field with the command from above)
+    * One container with the worker of the panel (use the `container.X.command` field with the command from above)
   * One container with the mariadb instance
   * One container with the redis instance
 * Make sure to properly mount all needed volumes to prevent data loss!
