@@ -13,7 +13,7 @@ docker build -t local_debian-pterodactyl .
 ### Preparing the panel
 Start your interactive Pterodactyl-setup:
 ```bash
-docker run -it --rm -v $(pwd)/pterodactyl/www/:/var/www/pterodactyl local_debian-pterodactyl bash
+docker run -it --rm -v $(pwd)/pterodactyl/:/var/www/pterodactyl local_debian-pterodactyl bash
 # Now follow https://pterodactyl.io/panel/1.0/getting_started.html - I've executed this:
 cd /var/www/pterodactyl
 curl -Lo panel.tar.gz https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz
@@ -77,25 +77,26 @@ php artisan p:user:make
 No need to configure Apache2 - a viable configuration is already baked into the image.
 Now start the panel:
 ```bash
-docker run -it --rm -v $(pwd)/pterodactyl/www/:/var/www/pterodactyl -p 80:80 local_debian-pterodactyl
+docker run -it --rm -v $(pwd)/pterodactyl/:/var/www/pterodactyl -p 80:80 local_debian-pterodactyl
 ```
 You'll may need to [disable Recapture](https://pterodox.com/guides/disabling-reCAPTCHA.html#disabling-via-env) for local testing.
 
 ### Panel jobs and queue
 You now have a working panel, but you'll need to start the queue worker and the job scheduler:
 ```bash
-docker run -it --rm -v $(pwd)/pterodactyl/www/:/var/www/pterodactyl local_debian-pterodactyl bash -c "sleep 10; while true; do php /var/www/pterodactyl/artisan schedule:run; sleep 60; done" # Job scheduler
-docker run -it --rm -v $(pwd)/pterodactyl/www/:/var/www/pterodactyl local_debian-pterodactyl bash -c "sleep 10; /usr/bin/php /var/www/pterodactyl/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3" # Queue worker
+docker run -it --rm -v $(pwd)/pterodactyl/:/var/www/pterodactyl local_debian-pterodactyl sudo -u www-data bash -c "sleep 10; while true; do php /var/www/pterodactyl/artisan schedule:run; sleep 60; done" # Job scheduler
+docker run -it --rm -v $(pwd)/pterodactyl/:/var/www/pterodactyl local_debian-pterodactyl sudo -u www-data bash -c "sleep 10; /usr/bin/php /var/www/pterodactyl/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3" # Queue worker
 ```
 
 # Kubernetes
 Well, I won't help you on that one :)
 
 Overall you have to run this as follows:
-* One pod with all services
-  * One container with the panel (no command overwrite!)
-  * One container with the job-scheduler of the panel (use the `container.X.args` field with the command from above)
-  * One container with the worker of the panel (use the `container.X.args` field with the command from above)
+* Overall Kubernetes idea
+  * One pod with all panel services (disable process isolation `shareProcessNamespace`)
+    * One container with the panel (no command overwrite!)
+    * One container with the job-scheduler of the panel (use the `container.X.args` field with the command from above)
+    * One container with the worker of the panel (use the `container.X.args` field with the command from above)
   * One container with the mariadb instance
   * One container with the redis instance
 * Make sure to properly mount all needed volumes to prevent data loss!
