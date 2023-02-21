@@ -14,32 +14,44 @@
 # - CI_REGISTRY_IMAGE
 # - DHUB_REGISTRY_IMAGE
 
-gitlab-ci:
+build_common:
     stage: build
     image:
-        name: gcr.io/kaniko-project/executor:debug
+        name: gcr.io/kaniko-project/executor:v1.9.0-debug
         entrypoint: [""]
+    parallel:
+        matrix:
+        - IMAGE:
+            - alpine-deploy
+            - alpine-php-doxygen
+            - debian-inotifywait
+            - debian-pterodactyl
+          REPOSITORY:
+            - gitlab-ci
+            - docker-hub
     script:
         - mkdir -p /kaniko/.docker
-        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/alpine-deploy --destination $CI_REGISTRY_IMAGE/alpine-deploy:latest
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/alpine-php-doxygen --destination $CI_REGISTRY_IMAGE/alpine-php-doxygen:latest
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $CI_REGISTRY_IMAGE/apache-php-mysql:8.1 --build-arg FROM_PHP_VERSION=8.1
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $CI_REGISTRY_IMAGE/apache-php-mysql:7.4 --build-arg FROM_PHP_VERSION=7.4
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/debian-inotifywait --destination $CI_REGISTRY_IMAGE/debian-inotifywait:latest
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/debian-pterodactyl --destination $CI_REGISTRY_IMAGE/debian-pterodactyl:latest
-        
-docker-hub:
+        # Adding both repository credentials, as this job may run for both
+        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}, \"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        - if [[ "$REPOSITORY" == "gitlab-ci" ]]; then export REGISTRY_TARGET=$CI_REGISTRY_IMAGE; else export REGISTRY_TARGET=$DHUB_REGISTRY_IMAGE; fi
+        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/$IMAGE --destination $REGISTRY_TARGET/$IMAGE:latest
+
+build_alpine_php_mysql:
     stage: build
     image:
-        name: gcr.io/kaniko-project/executor:debug
+        name: gcr.io/kaniko-project/executor:v1.9.0-debug
         entrypoint: [""]
+    parallel:
+        matrix:
+        - VERSION:
+            - "7.4"
+            - "8.1"
+          REPOSITORY:
+            - gitlab-ci
+            - docker-hub
     script:
         - mkdir -p /kaniko/.docker
-        - echo "{\"auths\":{\"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/alpine-deploy --destination $DHUB_REGISTRY_IMAGE/alpine-deploy:latest
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/alpine-php-doxygen --destination $DHUB_REGISTRY_IMAGE/alpine-php-doxygen:latest
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $DHUB_REGISTRY_IMAGE/apache-php-mysql:8.1 --build-arg FROM_PHP_VERSION=8.1
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $DHUB_REGISTRY_IMAGE/apache-php-mysql:7.4 --build-arg FROM_PHP_VERSION=7.4
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/debian-inotifywait --destination $DHUB_REGISTRY_IMAGE/debian-inotifywait:latest
-        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/debian-pterodactyl --destination $DHUB_REGISTRY_IMAGE/debian-pterodactyl:latest
+        # Adding both repository credentials, as this job may run for both
+        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}, \"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        - if [[ "$REPOSITORY" == "gitlab-ci" ]]; then export REGISTRY_TARGET=$CI_REGISTRY_IMAGE; else export REGISTRY_TARGET=$DHUB_REGISTRY_IMAGE; fi
+        - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $REGISTRY_TARGET/apache-php-mysql:$VERSION --build-arg FROM_PHP_VERSION=$VERSION
