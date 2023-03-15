@@ -27,13 +27,14 @@ build_common:
             - debian-inotifywait
             - debian-pterodactyl
           REPOSITORY:
+            - github-ghcr
             - gitlab-ci
             - docker-hub
     script:
         - mkdir -p /kaniko/.docker
         # Adding both repository credentials, as this job may run for both
-        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}, \"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-        - if [[ "$REPOSITORY" == "gitlab-ci" ]]; then export REGISTRY_TARGET=$CI_REGISTRY_IMAGE; else export REGISTRY_TARGET=$DHUB_REGISTRY_IMAGE; fi
+        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}, \"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}, \"$GHCR_REGISTRY\":{\"username\":\"$GHCR_REGISTRY_USER\",\"password\":\"$GHCR_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        - if [[ "$REPOSITORY" == "gitlab-ci" ]]; then export REGISTRY_TARGET=$CI_REGISTRY_IMAGE; elif [[ "$REPOSITORY" == "github-ghcr" ]]; then export REGISTRY_TARGET=$GHCR_REGISTRY_IMAGE; else export REGISTRY_TARGET=$DHUB_REGISTRY_IMAGE; fi
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/$IMAGE --destination $REGISTRY_TARGET/$IMAGE:latest
 
 build_alpine_php_mysql:
@@ -47,11 +48,12 @@ build_alpine_php_mysql:
             - "7.4"
             - "8.1"
           REPOSITORY:
+            - github-ghcr
             - gitlab-ci
             - docker-hub
     script:
         - mkdir -p /kaniko/.docker
         # Adding both repository credentials, as this job may run for both
-        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}, \"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-        - if [[ "$REPOSITORY" == "gitlab-ci" ]]; then export REGISTRY_TARGET=$CI_REGISTRY_IMAGE; else export REGISTRY_TARGET=$DHUB_REGISTRY_IMAGE; fi
+        - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}, \"$DHUB_REGISTRY\":{\"username\":\"$DHUB_REGISTRY_USER\",\"password\":\"$DHUB_REGISTRY_PASSWORD\"}, \"$GHCR_REGISTRY\":{\"username\":\"$GHCR_REGISTRY_USER\",\"password\":\"$GHCR_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+        - if [[ "$REPOSITORY" == "gitlab-ci" ]]; then export REGISTRY_TARGET=$CI_REGISTRY_IMAGE; elif [[ "$REPOSITORY" == "github-ghcr" ]]; then export REGISTRY_TARGET=$GHCR_REGISTRY_IMAGE; else export REGISTRY_TARGET=$DHUB_REGISTRY_IMAGE; fi
         - /kaniko/executor --cleanup --context $CI_PROJECT_DIR/apache-php-mysql --destination $REGISTRY_TARGET/apache-php-mysql:$VERSION --build-arg FROM_PHP_VERSION=$VERSION
