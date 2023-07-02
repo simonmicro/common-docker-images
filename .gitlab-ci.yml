@@ -10,6 +10,11 @@
 # - DHUB_REGISTRY_USER (via GitLab project settings)
 # - DHUB_REGISTRY_PASSWORD (via GitLab project settings)
 #
+# Following additional ENV-Vars are needed (for GitHub):
+# - GHCR_REGISTRY (via GitLab project settings)
+# - GHCR_REGISTRY_USER (via GitLab project settings)
+# - GHCR_REGISTRY_PASSWORD (via GitLab project settings)
+#
 # Following vars are set dynamically based on the target path:
 # - CI_REGISTRY_IMAGE
 # - DHUB_REGISTRY_IMAGE
